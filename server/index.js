@@ -1,6 +1,7 @@
 import express from 'express'
 import cors from 'cors'
 import authRoutes from './auth.js'
+import meetingRoutes from './meetings.js'
 
 const app = express()
 
@@ -21,8 +22,9 @@ app.get('/api/test', (req, res) => {
     })
 })
 
-// Auth routes
+// Routes
 app.use('/api/auth', authRoutes)
+app.use('/api/meetings', meetingRoutes)
 
 const PORT = 5000
 app.listen(PORT, () => {
