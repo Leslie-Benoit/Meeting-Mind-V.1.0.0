@@ -11,7 +11,6 @@ function NewMeeting() {
 
     const navigate = useNavigate()
 
-    // Adds an attendee to the list when user hits Enter
     function handleAddAttendee(e) {
         if (e.key === 'Enter' && currentAttendee.trim() !== '') {
             setAttendees([...attendees, currentAttendee.trim()])
@@ -19,10 +18,38 @@ function NewMeeting() {
         }
     }
 
-    // Handles form submission
-    function handleSubmit(e) {
+    async function handleSubmit(e) {
         e.preventDefault()
-        navigate('/meeting-room')
+
+        const token = localStorage.getItem('token')
+
+        try {
+            const response = await fetch('http://localhost:5000/api/meetings', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    title,
+                    date,
+                    time,
+                    attendees,
+                    agenda
+                })
+            })
+
+            const data = await response.json()
+
+            if (response.ok) {
+                alert('Meeting created successfully!')
+                navigate('/dashboard')
+            } else {
+                alert(data.error)
+            }
+        } catch (error) {
+            alert('Error creating meeting')
+        }
     }
 
     return (
@@ -32,7 +59,6 @@ function NewMeeting() {
 
             <form onSubmit={handleSubmit}>
 
-                {/* Meeting Title */}
                 <div className="form-group">
                     <label>Meeting Title</label>
                     <input
@@ -40,30 +66,30 @@ function NewMeeting() {
                         placeholder="e.g. Q2 Marketing Strategy"
                         value={title}
                         onChange={(e) => setTitle(e.target.value)}
+                        required
                     />
                 </div>
 
-                {/* Date */}
                 <div className="form-group">
                     <label>Date</label>
                     <input
                         type="date"
                         value={date}
                         onChange={(e) => setDate(e.target.value)}
+                        required
                     />
                 </div>
 
-                {/* Time */}
                 <div className="form-group">
                     <label>Time</label>
                     <input
                         type="time"
                         value={time}
                         onChange={(e) => setTime(e.target.value)}
+                        required
                     />
                 </div>
 
-                {/* Attendees */}
                 <div className="form-group">
                     <label>Add Attendees</label>
                     <input
@@ -73,7 +99,6 @@ function NewMeeting() {
                         onChange={(e) => setCurrentAttendee(e.target.value)}
                         onKeyDown={handleAddAttendee}
                     />
-                    {/* Shows added attendees as tags */}
                     <div className="attendee-tags">
                         {attendees.map((attendee, index) => (
                             <span key={index} className="attendee-tag">
@@ -83,11 +108,10 @@ function NewMeeting() {
                     </div>
                 </div>
 
-                {/* Agenda */}
                 <div className="form-group">
                     <label>Meeting Agenda</label>
                     <textarea
-                        placeholder="Add your agenda topics here, one per line. Our AI will structure them into a timed agenda for your attendees."
+                        placeholder="Add your agenda topics here"
                         value={agenda}
                         onChange={(e) => setAgenda(e.target.value)}
                     ></textarea>
