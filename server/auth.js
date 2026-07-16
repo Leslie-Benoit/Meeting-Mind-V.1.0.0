@@ -31,7 +31,7 @@ router.post('/signup', async (req, res) => {
         users.push(newUser)
 
         // Create a JWT token for this user
-        const token = jwt.sign({ userId: newUser.id }, 'your-secret-key', { expiresIn: '7d' })
+        const token = jwt.sign({ userId: newUser.id }, process.env.JWT_SECRET, { expiresIn: '7d' })
 
         res.json({ 
             message: 'Account created successfully',
@@ -62,7 +62,7 @@ router.post('/login', async (req, res) => {
 
         // Create JWT token
         const token = jwt.
-          sign({ userId: user.id }, 'your-secret-key', { expiresIn: '7d' })
+          sign({ userId: user.id }, process.env.JWT_SECRET, { expiresIn: '7d' })
 
         res.json({ 
             message: 'Login successful',
