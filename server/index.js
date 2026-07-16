@@ -1,7 +1,7 @@
 import express from 'express'
 import cors from 'cors'
 import authRoutes from './auth.js'
-import meetingRoutes from './meetings.js'
+import meetingRoutes from './meeting.js'
 
 const app = express()
 
