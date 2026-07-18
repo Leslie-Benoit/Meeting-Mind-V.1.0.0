@@ -28,6 +28,8 @@ app.get('/api/test', (req, res) => {
 app.use('/api/auth', authRoutes)
 app.use('/api/meetings', meetingRoutes)
 
+
+//TIMESTAMP TEST CODE///////////////////////////////
 app.get('/api/db-test', async (req, res) => {
     try {
         const result = await pool.query('SELECT NOW()')
@@ -35,7 +37,7 @@ app.get('/api/db-test', async (req, res) => {
     } catch (error) {
         res.status(500).json({ error: error.message })
     }
-})
+////////////////////////////////////////////////////
 
 const PORT = process.env.PORT || 5000
 app.listen(PORT, () => {
