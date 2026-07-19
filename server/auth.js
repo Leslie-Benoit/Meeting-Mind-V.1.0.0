@@ -19,19 +19,19 @@ router.post('/signup', async (req, res) => {
 }
 
         // Hash the password - never store plain text passwords
-        const hashedPassword = await bcrypt.hash(password, 10)
+      const hashedPassword = await bcrypt.hash(password, 10)
 
-        // Create the new user
-        const newUser = {
-            id: users.length + 1,
-            name,
-            email,
-            password: hashedPassword
-        }
+const result = await pool.query(
+    'INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING *',
+    [name, email, hashedPassword]
+)
+      
+// Create the new user
+const result = await pool.query('SELECT * FROM users WHERE email = $1', [email])
+const user = result.rows[0]
 
-        users.push(newUser)
 
-        // Create a JWT token for this user
+// Create a JWT token for this user
         const token = jwt.sign({ userId: newUser.id }, process.env.JWT_SECRET, { expiresIn: '7d' })
 
         res.json({ 
