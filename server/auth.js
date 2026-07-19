@@ -1,6 +1,7 @@
 import express from 'express'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
+import pool from './db.js'
 
 const router = express.Router()
 
@@ -12,10 +13,10 @@ router.post('/signup', async (req, res) => {
     try {
         const { name, email, password } = req.body
         // Check if user already exists
-        const existingUser = users.find(u => u.email === email)
-        if (existingUser) {
-            return res.status(400).json({ error: 'Email already registered' })
-        }
+        const existingUser = await pool.query('SELECT * FROM users WHERE email = $1', [email])
+     if (existingUser.rows.length > 0) {
+    return res.status(400).json({ error: 'Email already registered' })
+}
 
         // Hash the password - never store plain text passwords
         const hashedPassword = await bcrypt.hash(password, 10)
