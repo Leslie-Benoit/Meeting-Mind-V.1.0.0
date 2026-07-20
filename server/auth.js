@@ -27,8 +27,8 @@ const result = await pool.query(
 )
       
 // Create the new user
-const result = await pool.query('SELECT * FROM users WHERE email = $1', [email])
-const user = result.rows[0]
+const newUser = result.rows[0]
+
 
 
 // Create a JWT token for this user
@@ -50,7 +50,8 @@ router.post('/login', async (req, res) => {
         const { email, password } = req.body
 
         // Find user by email
-        const user = users.find(u => u.email === email)
+    const result = await pool.query('SELECT * FROM users WHERE email = $1', [email])
+const user = result.rows[0]
         if (!user) {
             return res.status(400).json({ error: 'Invalid email or password' })
         }
