@@ -1,5 +1,6 @@
 import express from 'express'
 import jwt from 'jsonwebtoken'
+import pool from './db.js'
 
 const router = express.Router()
 
@@ -24,22 +25,17 @@ function authenticateToken(req, res, next) {
 }
 
 // CREATE — Save a new meeting
-router.post('/', authenticateToken, (req, res) => {
+router.post('/', authenticateToken, async (req, res) => {
     const { title, date, time, attendees, agenda } = req.body
 
-    const newMeeting = {
-        id: meetings.length + 1,
-        userId: req.userId,
-        title,
-        date,
-        time,
-        attendees,
-        agenda,
-        status: 'scheduled',
-        createdAt: new Date()
-    }
+const result = await pool.query(
+    `INSERT INTO meetings (user_id, title, date, time, attendees, agenda, status)
+     VALUES ($1, $2, $3, $4, $5, $6, $7)
+     RETURNING *`,
+    [req.userId, title, date, time, attendees, agenda, 'scheduled']
+)
 
-    meetings.push(newMeeting)
+const newMeeting = result.rows[0]
 
     res.json({ 
         message: 'Meeting created successfully',
@@ -48,15 +44,19 @@ router.post('/', authenticateToken, (req, res) => {
 })
 
 // READ — Get all meetings for logged in user
-router.get('/', authenticateToken, (req, res) => {
-    const userMeetings = meetings.filter(m => m.userId === req.userId)
-    res.json({ meetings: userMeetings })
+router.get('/', authenticateToken, async (req, res) => {
+    const result = await pool.query('SELECT * FROM meetings WHERE user_id = $1', [req.userId])
+    res.json({ meetings: result.rows })
 })
 
 // READ — Get one specific meeting
-router.get('/:id', authenticateToken, (req, res) => {
-    const meeting = meetings.find(m => m.id === parseInt(req.params.id) && m.userId === req.userId)
-    
+router.get('/:id', authenticateToken, async (req, res) => {
+    const result = await pool.query(
+        'SELECT * FROM meetings WHERE id = $1 AND user_id = $2',
+        [req.params.id, req.userId]
+    )
+    const meeting = result.rows[0]
+
     if (!meeting) {
         return res.status(404).json({ error: 'Meeting not found' })
     }
@@ -85,14 +85,15 @@ router.put('/:id', authenticateToken, (req, res) => {
 })
 
 // DELETE — Remove a meeting
-router.delete('/:id', authenticateToken, (req, res) => {
-    const meetingIndex = meetings.findIndex(m => m.id === parseInt(req.params.id) && m.userId === req.userId)
-    
-    if (meetingIndex === -1) {
+router.delete('/:id', authenticateToken, async (req, res) => {
+    const result = await pool.query(
+        'DELETE FROM meetings WHERE id = $1 AND user_id = $2 RETURNING *',
+        [req.params.id, req.userId]
+    )
+
+    if (result.rows.length === 0) {
         return res.status(404).json({ error: 'Meeting not found' })
     }
-
-    meetings.splice(meetingIndex, 1)
 
     res.json({ message: 'Meeting deleted successfully' })
 })

@@ -1,49 +1,55 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 
 function Dashboard() {
-    // This simulates whether the user has meetings or not
-    // When backend is connected this will come from real data
-    const [hasMeetings, setHasMeetings] = useState(true)
+    const [meetings, setMeetings] = useState([])
+    const [loading, setLoading] = useState(true)
+
+    useEffect(() => {
+        async function fetchMeetings() {
+            const token = localStorage.getItem('token')
+
+            try {
+                const response = await fetch('http://localhost:5000/api/meetings', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                })
+
+                const data = await response.json()
+
+                if (response.ok) {
+                    setMeetings(data.meetings)
+                }
+            } catch (error) {
+                console.error('Error fetching meetings:', error)
+            } finally {
+                setLoading(false)
+            }
+        }
+
+        fetchMeetings()
+    }, [])
+
+    if (loading) {
+        return <div className="dashboard"><p>Loading your meetings...</p></div>
+    }
 
     return (
         <div className="dashboard">
 
             {/* Header */}
-            <h1>Welcome back, Alex 👋</h1>
+            <h1>Welcome back 👋</h1>
             <p className="dashboard-subtitle">Here is everything happening across your meetings.</p>
 
-            {/* Toggle for testing empty state — remove when backend is connected */}
-            <div style={{ marginBottom: '24px' }}>
-                <button
-                    onClick={() => setHasMeetings(!hasMeetings)}
-                    className="btn-outline"
-                    style={{ padding: '8px 20px', fontSize: '0.85rem' }}
-                >
-                    {hasMeetings ? 'Preview Empty State' : 'Preview With Meetings'}
-                </button>
-            </div>
-
-            {hasMeetings ? (
+            {meetings.length > 0 ? (
                 /* NORMAL STATE — user has meetings */
                 <div>
                     {/* Stats */}
                     <div className="stats-grid">
                         <div className="stat-card">
-                            <h3>24</h3>
+                            <h3>{meetings.length}</h3>
                             <p>Total Meetings</p>
-                        </div>
-                        <div className="stat-card">
-                            <h3>87%</h3>
-                            <p>Action Items Completed</p>
-                        </div>
-                        <div className="stat-card">
-                            <h3>142</h3>
-                            <p>Action Items Generated</p>
-                        </div>
-                        <div className="stat-card">
-                            <h3>38m</h3>
-                            <p>Average Meeting Length</p>
                         </div>
                     </div>
 
@@ -52,36 +58,18 @@ function Dashboard() {
                         Recent Meetings
                     </h2>
                     <div className="meetings-list">
-                        <div className="meeting-item">
-                            <div>
-                                <h4>Q2 Marketing Strategy</h4>
-                                <p>April 10, 2025 · 6 attendees · 45 mins</p>
+                        {meetings.map((meeting) => (
+                            <div className="meeting-item" key={meeting.id}>
+                                <div>
+                                    <h4>{meeting.title}</h4>
+                                    <p>{meeting.date} · {meeting.time}</p>
+                                </div>
+                                <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                                    <span className="badge badge-complete">{meeting.status}</span>
+                                    <Link to="/results" className="btn">View Summary</Link>
+                                </div>
                             </div>
-                            <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                                <span className="badge badge-complete">Complete</span>
-                                <Link to="/results" className="btn">View Summary</Link>
-                            </div>
-                        </div>
-                        <div className="meeting-item">
-                            <div>
-                                <h4>Product Roadmap Review</h4>
-                                <p>April 8, 2025 · 4 attendees · 60 mins</p>
-                            </div>
-                            <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                                <span className="badge badge-complete">Complete</span>
-                                <Link to="/results" className="btn">View Summary</Link>
-                            </div>
-                        </div>
-                        <div className="meeting-item">
-                            <div>
-                                <h4>Engineering Standup</h4>
-                                <p>April 12, 2025 · 8 attendees · 30 mins</p>
-                            </div>
-                            <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                                <span className="badge badge-live">Live</span>
-                                <Link to="/meeting-room" className="btn">Join Now</Link>
-                            </div>
-                        </div>
+                        ))}
                     </div>
 
                     {/* New Meeting Button */}
