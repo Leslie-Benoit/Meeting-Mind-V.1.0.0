@@ -34,7 +34,24 @@ function Dashboard() {
     if (loading) {
         return <div className="dashboard"><p>Loading your meetings...</p></div>
     }
+async function handleDelete(meetingId) {
+    const token = localStorage.getItem('token')
 
+    try {
+        const response = await fetch(`http://localhost:5000/api/meetings/${meetingId}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        })
+
+        if (response.ok) {
+            setMeetings(meetings.filter(m => m.id !== meetingId))
+        }
+    } catch (error) {
+        console.error('Error deleting meeting:', error)
+    }
+}
     return (
         <div className="dashboard">
 
@@ -67,6 +84,9 @@ function Dashboard() {
                                 <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
                                     <span className="badge badge-complete">{meeting.status}</span>
                                     <Link to="/results" className="btn">View Summary</Link>
+                                    <button className="btn btn-danger" onClick={() => handleDelete(meeting.id)}>
+                                        Delete
+                                    </button>
                                 </div>
                             </div>
                         ))}
