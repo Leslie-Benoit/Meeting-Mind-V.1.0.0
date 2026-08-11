@@ -3,6 +3,7 @@ import express from 'express'
 import cors from 'cors'
 import authRoutes from './auth.js'
 import meetingRoutes from './meeting.js'
+import actionItemRoutes from './actionItems.js'
 import pool from './db.js'
 
 const app = express()
@@ -27,7 +28,7 @@ app.get('/api/test', (req, res) => {
 // Routes
 app.use('/api/auth', authRoutes)
 app.use('/api/meetings', meetingRoutes)
-
+app.use('/api/action-items', actionItemRoutes)
 
 const PORT = process.env.PORT || 5000
 app.listen(PORT, () => {
